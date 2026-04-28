@@ -1,7 +1,8 @@
 # wamda
 
 A new Flutter project.
-
+UI/UX design link :
+https://www.figma.com/design/Q8JFqthZDRdGph5c6tgmKJ/Untitled?node-id=0-1&t=VM0o6qha14d4qwSr-1
 ## Getting Started
 
 This project is a starting point for a Flutter application.
