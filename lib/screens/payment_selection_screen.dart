@@ -1,21 +1,5 @@
 import 'package:flutter/material.dart';
-
-void main() {
-  runApp(const MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      locale: const Locale('ar', 'YE'),
-      home: const PaymentSelectionScreen(),
-    );
-  }
-}
+import 'home_screen.dart';
 
 class PaymentSelectionScreen extends StatelessWidget {
   const PaymentSelectionScreen({super.key});
@@ -23,10 +7,9 @@ class PaymentSelectionScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFE3F2F6), // اللون السماوي الفاتح للخلفية
+      backgroundColor: const Color(0xFFE3F2F6),
       body: Stack(
         children: [
-          // 1. الجزء العلوي (السهم)
           Positioned(
             top: 50,
             left: 20,
@@ -36,7 +19,6 @@ class PaymentSelectionScreen extends StatelessWidget {
             ),
           ),
 
-          // 2. الحاوية البيضاء الرئيسية
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
@@ -51,8 +33,7 @@ class PaymentSelectionScreen extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  const SizedBox(height: 70), // مساحة لأيقونة المتجر المتداخلة
-                  // اسم المتجر
+                  const SizedBox(height: 70),
                   const Text(
                     "الجندول",
                     style: TextStyle(
@@ -61,10 +42,7 @@ class PaymentSelectionScreen extends StatelessWidget {
                       color: Color(0xFF002E30),
                     ),
                   ),
-
                   const SizedBox(height: 20),
-
-                  // مربع المبلغ
                   Container(
                     width: 220,
                     padding: const EdgeInsets.symmetric(vertical: 12),
@@ -86,18 +64,12 @@ class PaymentSelectionScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 40),
-
-                  // عنوان اختيار مصدر الدفع
                   const Text(
                     "اختار مصدر الدفع",
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-
                   const SizedBox(height: 30),
-
-                  // خيارات الدفع (الشبكة)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 30),
                     child: Row(
@@ -121,50 +93,12 @@ class PaymentSelectionScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-
                   const Spacer(),
-
-                  // زر تأكيد الدفع
                   Padding(
                     padding: const EdgeInsets.only(bottom: 50),
                     child: ElevatedButton(
                       onPressed: () {
-                        showDialog(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (context) {
-                            return AlertDialog(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                              title: const Text(
-                                "تم الدفع بنجاح ",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              content: const Icon(
-                                Icons.check_circle,
-                                color: Colors.green,
-                                size: 70,
-                              ),
-                              actionsAlignment: MainAxisAlignment.center,
-                              actions: [
-                                TextButton(
-                                  onPressed: () {
-                                    Navigator.pop(context);
-                                  },
-                                  child: const Text(
-                                    "حسناً",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFF002E30),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        );
+                        _showSuccessDialog(context);
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF002E30),
@@ -191,7 +125,6 @@ class PaymentSelectionScreen extends StatelessWidget {
             ),
           ),
 
-          // 3. أيقونة المتجر المتداخلة (توضع في Stack لبروزها)
           Positioned(
             top: MediaQuery.of(context).size.height * 0.25 - 45,
             left: MediaQuery.of(context).size.width / 2 - 45,
@@ -218,7 +151,52 @@ class PaymentSelectionScreen extends StatelessWidget {
     );
   }
 
-  // ودجت لبناء أيقونة وسيلة الدفع
+  // دالة إظهار الرسالة وتعديل مسار العودة
+  void _showSuccessDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          title: const Text(
+            "تم الدفع بنجاح",
+            textAlign: TextAlign.center,
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: const Icon(
+            Icons.check_circle,
+            color: Colors.green,
+            size: 70,
+          ),
+          actionsAlignment: MainAxisAlignment.center,
+          actions: [
+            TextButton(
+              onPressed: () {
+                // الحل النهائي: حذف كل المسارات والعودة للهوم سكرين حصراً
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  (route) =>
+                      false, // هذا يمنع الرجوع للخلف نهائياً (تصفير السجل)
+                );
+              },
+              child: const Text(
+                "حسناً",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF002E30),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Widget _buildPaymentMethod(String name, Color color, IconData icon) {
     return Column(
       children: [

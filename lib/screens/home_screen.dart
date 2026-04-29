@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'qr_scanner_screen.dart';
 import 'account_screen.dart';
 import 'payment_selection_screen.dart';
-import 'settings_screen.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -12,6 +12,56 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  int currentIndex = 2;
+
+  // داخل كلاس QrScannerScreen
+  bool isScanned = false; // متغير لمنع التكرار
+
+  // داخل دالة التcallback المسؤولة عن كشف الكود (onDetect أو onScan)
+  void _onDetect(BarcodeCapture capture) {
+    if (!isScanned) {
+      setState(() {
+        isScanned = true; // نغير الحالة فوراً لمنع الدخول هنا مرة أخرى
+      });
+
+      // إرجاع النتيجة وإغلاق شاشة الكاميرا
+      Navigator.pop(context, capture.barcodes.first.rawValue);
+    }
+  }
+
+  // 📷 فتح QR Scanner المعدلة
+  Future<void> openQR() async {
+    // استخدم متغير محلي لمنع النقر المتعدد على الزر
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const QrScannerScreen()),
+    );
+
+    // إذا رجعنا بنتيجة ولم تكن الصفحة قد أغلقت
+    if (result != null && mounted) {
+      // تأخير بسيط جداً لضمان استقرار نظام الـ Navigation بعد إغلاق الكاميرا
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      if (!mounted) return;
+
+      // الانتقال لصفحة الدفع مع استخدام 'rootNavigator' إذا لزم الأمر
+      // لضمان أنها تفتح فوق كل شيء وتستقر
+      Navigator.of(context)
+          .push(
+            MaterialPageRoute(
+              builder: (context) => const PaymentSelectionScreen(),
+            ),
+          )
+          .then((_) {
+            if (mounted) {
+              setState(() {
+                currentIndex = 2; // العودة للرئيسية بعد إنهاء الدفع
+              });
+            }
+          });
+    }
+  }
+
   static Widget _buildTransactionItem(
     String title,
     String amount,
@@ -51,24 +101,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  int currentIndex = 2;
-
-  // 📷 فتح QR Scanner
-  Future<void> openQR() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const QrScannerScreen()),
-    );
-
-    // ✅ بعد نجاح المسح أو رفع صورة → انتقل لصفحة الدفع
-    if (result != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const PaymentSelectionScreen()),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -102,12 +134,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => const SettingsScreen(),
+                              builder: (_) => const AccountScreen(),
                             ),
                           );
                         },
                       ),
-
                       const Text(
                         "أهلاً، محمد",
                         style: TextStyle(
@@ -148,11 +179,11 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            // 🟡 زر QR
+            // 🟡 زر QR الكبير
             Transform.translate(
               offset: const Offset(0, -50),
               child: GestureDetector(
-                onTap: openQR, // ✅ فقط يفتح QR
+                onTap: openQR,
                 child: Container(
                   width: 160,
                   height: 160,
@@ -199,12 +230,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-
                     const SizedBox(height: 15),
-
                     _buildTransactionItem("الجندول", "5,000 ريال", Icons.store),
                     const Divider(),
-
                     _buildTransactionItem(
                       "الشيباني",
                       "2,000 ريال",
@@ -230,7 +258,7 @@ class _HomeScreenState extends State<HomeScreen> {
           });
 
           if (index == 1) {
-            openQR(); // 📷 QR Scanner
+            openQR(); // 📷 فتح الماسح
           }
 
           if (index == 0) {
