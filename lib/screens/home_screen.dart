@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'qr_scanner_screen.dart';
 import 'account_screen.dart';
 import 'payment_selection_screen.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,51 +13,21 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int currentIndex = 2;
 
-  // داخل كلاس QrScannerScreen
-  bool isScanned = false; // متغير لمنع التكرار
-
-  // داخل دالة التcallback المسؤولة عن كشف الكود (onDetect أو onScan)
-  void _onDetect(BarcodeCapture capture) {
-    if (!isScanned) {
-      setState(() {
-        isScanned = true; // نغير الحالة فوراً لمنع الدخول هنا مرة أخرى
-      });
-
-      // إرجاع النتيجة وإغلاق شاشة الكاميرا
-      Navigator.pop(context, capture.barcodes.first.rawValue);
-    }
-  }
-
-  // 📷 فتح QR Scanner المعدلة
   Future<void> openQR() async {
-    // استخدم متغير محلي لمنع النقر المتعدد على الزر
     final result = await Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const QrScannerScreen()),
     );
 
-    // إذا رجعنا بنتيجة ولم تكن الصفحة قد أغلقت
     if (result != null && mounted) {
-      // تأخير بسيط جداً لضمان استقرار نظام الـ Navigation بعد إغلاق الكاميرا
       await Future.delayed(const Duration(milliseconds: 300));
 
       if (!mounted) return;
 
-      // الانتقال لصفحة الدفع مع استخدام 'rootNavigator' إذا لزم الأمر
-      // لضمان أنها تفتح فوق كل شيء وتستقر
-      Navigator.of(context)
-          .push(
-            MaterialPageRoute(
-              builder: (context) => const PaymentSelectionScreen(),
-            ),
-          )
-          .then((_) {
-            if (mounted) {
-              setState(() {
-                currentIndex = 2; // العودة للرئيسية بعد إنهاء الدفع
-              });
-            }
-          });
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const PaymentSelectionScreen()),
+      );
     }
   }
 
@@ -105,120 +74,125 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Directionality(
-        textDirection: TextDirection.rtl,
-        child: Column(
-          children: [
-            // 🔵 الهيدر
-            Container(
-              padding: const EdgeInsets.fromLTRB(20, 50, 20, 30),
-              decoration: const BoxDecoration(
-                color: Color(0xFFE3F2F6),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(40),
-                  bottomRight: Radius.circular(40),
+
+      // ✅ الحل الأساسي للـ overflow
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              // 🔵 الهيدر
+              Container(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 30),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFE3F2F6),
+                  borderRadius: BorderRadius.only(
+                    bottomLeft: Radius.circular(40),
+                    bottomRight: Radius.circular(40),
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        IconButton(
+                          icon: const Icon(
+                            Icons.menu,
+                            color: Color(0xFF003D40),
+                            size: 30,
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const AccountScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                        const Text(
+                          "أهلاً، محمد",
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF003D40),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 30),
+
+                    // 💳 البطاقة
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF002E30),
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: const Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text("النقاط", style: TextStyle(color: Colors.white)),
+                          SizedBox(height: 5),
+                          Text(
+                            "5000 ريال",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 26,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      IconButton(
-                        icon: const Icon(
-                          Icons.menu,
-                          color: Color(0xFF003D40),
-                          size: 30,
-                        ),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const AccountScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      const Text(
-                        "أهلاً، محمد",
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF003D40),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 30),
 
-                  // 💳 البطاقة
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(20),
+              // 🟡 زر QR
+              Transform.translate(
+                offset: const Offset(0, -40),
+                child: GestureDetector(
+                  onTap: openQR,
+                  child: Container(
+                    width: 160,
+                    height: 160,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF002E30),
-                      borderRadius: BorderRadius.circular(15),
+                      color: const Color(0xFFFDB813),
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                        ),
+                      ],
                     ),
                     child: const Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text("النقاط", style: TextStyle(color: Colors.white)),
+                        Icon(
+                          Icons.qr_code_2,
+                          size: 60,
+                          color: Color(0xFF003D40),
+                        ),
                         SizedBox(height: 5),
                         Text(
-                          "5000 ريال",
+                          "ادفع بومضة",
                           style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 26,
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
+                            color: Color(0xFF003D40),
                           ),
                         ),
                       ],
                     ),
                   ),
-                ],
-              ),
-            ),
-
-            // 🟡 زر QR الكبير
-            Transform.translate(
-              offset: const Offset(0, -50),
-              child: GestureDetector(
-                onTap: openQR,
-                child: Container(
-                  width: 160,
-                  height: 160,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFDB813),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 10,
-                      ),
-                    ],
-                  ),
-                  child: const Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.qr_code_2, size: 60, color: Color(0xFF003D40)),
-                      SizedBox(height: 5),
-                      Text(
-                        "ادفع بومضة",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF003D40),
-                        ),
-                      ),
-                    ],
-                  ),
                 ),
               ),
-            ),
 
-            // 📊 العمليات
-            Expanded(
-              child: Padding(
+              // 📊 العمليات (بدون Expanded ❌)
+              Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -231,8 +205,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     const SizedBox(height: 15),
+
                     _buildTransactionItem("الجندول", "5,000 ريال", Icons.store),
                     const Divider(),
+
                     _buildTransactionItem(
                       "الشيباني",
                       "2,000 ريال",
@@ -242,8 +218,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   ],
                 ),
               ),
-            ),
-          ],
+
+              const SizedBox(height: 30),
+            ],
+          ),
         ),
       ),
 
@@ -257,9 +235,7 @@ class _HomeScreenState extends State<HomeScreen> {
             currentIndex = index;
           });
 
-          if (index == 1) {
-            openQR(); // 📷 فتح الماسح
-          }
+          if (index == 1) openQR();
 
           if (index == 0) {
             Navigator.push(
