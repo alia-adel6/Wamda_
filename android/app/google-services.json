@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "399277225606",
+    "project_id": "wamda-cb785",
+    "storage_bucket": "wamda-cb785.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:399277225606:android:274be5e66522d37518c307",
+        "android_client_info": {
+          "package_name": "com.example.wamda"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA1mld3Qbhmr-xSeEf8pOWXtNXRqO9JbzA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

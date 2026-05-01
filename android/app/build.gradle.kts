@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("dev.flutter.flutter-gradle-plugin")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -9,7 +10,6 @@ android {
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
     ndkVersion = "25.1.8937393"
-
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -43,4 +43,7 @@ android {
 flutter {
     source = "../.."
 }
+dependencies{
+       implementation(platform("com.google.firebase:firebase-bom:33.0.0"))
 
+}
